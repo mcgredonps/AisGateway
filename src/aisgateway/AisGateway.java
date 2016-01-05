@@ -8,6 +8,7 @@ package aisgateway;
 import dk.dma.ais.reader.*;
 import dk.dma.ais.message.*;
 
+import edu.nps.moves.dis.*;
 
 import java.util.function.*;
 
@@ -73,9 +74,11 @@ public class AisGateway {
                                     " true heading:" + heading);
 
                             // OK, we've got data; how to send this in DIS?
+                            EntityStatePdu espdu = new EntityStatePdu();
                             
                             break;
 
+                        // Static position report, sometimes used for navigation aides
                         case 5:
                             //System.out.println("Static position report");
                             break;
