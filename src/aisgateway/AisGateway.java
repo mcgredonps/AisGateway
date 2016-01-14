@@ -106,7 +106,7 @@ public class AisGateway {
                                 ShipInfo newShipInfo = new ShipInfo(espdu);
                                 
                                // Add entity type info, entity ID info to PDU,
-                               // other stuff that doesn't change
+                               // other stuff that doesn't change here
                                database.put(userId, newShipInfo);
                                
                                shipInfo = newShipInfo;
@@ -118,6 +118,10 @@ public class AisGateway {
                             shipInfo.espdu.getEntityLocation().setX(disPosition[0]);
                             shipInfo.espdu.getEntityLocation().setY(disPosition[1]);
                             shipInfo.espdu.getEntityLocation().setZ(disPosition[2]);
+                            
+                            shipInfo.lastAISUpdate = new Date();
+                            
+                            // Send espdu to network here
 
                             break;
 
