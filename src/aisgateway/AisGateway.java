@@ -40,6 +40,12 @@ public class AisGateway {
             Thread hbThread = new Thread(hb);
             hbThread.start();
             
+            // Starts a thread that removes ships from the database if they have
+            // sent no AIS message within a time period
+            AisTimeout timeout = new AisTimeout(database);
+            Thread timeoutThread = new Thread(timeout);
+            timeoutThread.start();
+            
             // Uses some fancy lambda stuff from Java 8. 
             reader.registerHandler(new Consumer<AisMessage>() 
             {
@@ -93,8 +99,8 @@ public class AisGateway {
                             
                             // Do geographic filtering here
                             
-                            //if( !(lat > 34 && lat < 32) && !(lon > -122 && lon < -120) )
-                            //    break;
+                            if( !(lat > 34 && lat < 32) && !(lon > -122 && lon < -120) )
+                                break;
                             
                             ShipInfo shipInfo = database.get(userId);
                             
@@ -107,6 +113,17 @@ public class AisGateway {
                                 
                                // Add entity type info, entity ID info to PDU,
                                // other stuff that doesn't change here
+                                espdu.getEntityType().setEntityKind((short) 1);  // Entity
+                                espdu.getEntityType().setDomain((short)3);       // surface
+                                espdu.getEntityType().setCountry(225);           // US; not strictly true
+                                espdu.getEntityType().setCategory((short)61);    // non-combatant ship
+                                espdu.getEntityType().setSubcategory((short)5);  // small fishing boat
+                                
+                                
+                               // Set the entity ID
+                               EntityID id = EntityIDs.getInstance().nextID();
+                               espdu.setEntityID(id);
+                                
                                database.put(userId, newShipInfo);
                                
                                shipInfo = newShipInfo;
@@ -122,6 +139,7 @@ public class AisGateway {
                             shipInfo.lastAISUpdate = new Date();
                             
                             // Send espdu to network here
+                            Network.getInstance().sendPdu(shipInfo.espdu);
 
                             break;
 

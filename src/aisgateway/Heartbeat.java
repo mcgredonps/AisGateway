@@ -44,24 +44,26 @@ public class Heartbeat implements Runnable
           Iterator it = keys.iterator();
 
           System.out.println();
-          System.out.println(" Database contents MMSI entries:");
-          System.out.println("    Number of entries: " + database.size());
-          System.out.println("====");
+          //System.out.println(" Database contents MMSI entries:");
+          System.out.println("    Number of ships: " + database.size());
+          //System.out.println("====");
           
           // Loop through all the MMSIs in the database, and retrieve the corresponding
           // ship information for eash MMSI
           while(it.hasNext())
           {
               Integer mmsi = (Integer)it.next();
-              System.out.println("MMSI: " + mmsi);
+              //System.out.println("MMSI: " + mmsi);
               ShipInfo shipInfo = database.get(mmsi);
 
               EntityStatePdu espdu = shipInfo.espdu;
              
-              // Send ESPDU here
+              Network.getInstance().sendPdu(espdu);
+              shipInfo.lastDISUpdate = new Date();
+             
           }
-          System.out.println("====");
-          System.out.println("   Number of ships in database: " + database.size());
+          //System.out.println("====");
+          //System.out.println("   Number of ships in database: " + database.size());
 
         }
         catch(Exception e)
