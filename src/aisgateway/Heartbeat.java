@@ -59,6 +59,7 @@ public class Heartbeat implements Runnable
               EntityStatePdu espdu = shipInfo.espdu;
              
               Network.getInstance().sendPdu(espdu);
+              System.out.println("Sent update for ship name " + new String(espdu.getMarking().getCharacters()));
               shipInfo.lastDISUpdate = new Date();
              
           }

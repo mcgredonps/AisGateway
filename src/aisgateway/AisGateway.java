@@ -31,11 +31,16 @@ public class AisGateway {
         {
             // Connect to the NPS server
             AisReader reader = AisReaders.createReader("172.20.70.143", 9010);
+            
+            // This hashmap has a key of the ship MMSI number, and 
+            // a value of "ShipInfo", which contains information about one ship
+            // as reported by AIS. It's concurrent, so multiple threads can access
+            //  it at once.
             ConcurrentHashMap<Integer, ShipInfo> database = new ConcurrentHashMap<Integer, ShipInfo>();
             
             // Starts another execution thread that runs concurrently with this.
             // The Heartbeat run() method will start executing at the same time,
-            // and execution will continue after this at the same time.
+            // while execution will continue after line this at the same time.
             Heartbeat hb = new Heartbeat(database);
             Thread hbThread = new Thread(hb);
             hbThread.start();
@@ -98,12 +103,14 @@ public class AisGateway {
                                     */
                             
                             // Do geographic filtering here
-                            
                             if( !(lat > 34 && lat < 32) && !(lon > -122 && lon < -120) )
                                 break;
                             
+                            // Look up the ship, based on the MMSI number
                             ShipInfo shipInfo = database.get(userId);
                             
+                            // If we get null back, that means we haven't heard from this ship
+                            // before. Add it to the database.
                             if(shipInfo == null)
                             {
                                 // OK, we've got data; how to send this in DIS?
@@ -112,7 +119,9 @@ public class AisGateway {
                                 ShipInfo newShipInfo = new ShipInfo(espdu);
                                 
                                // Add entity type info, entity ID info to PDU,
-                               // other stuff that doesn't change here
+                               // other stuff that doesn't change here. Should also
+                                // add dead reckoning algorithm, and the ship name
+                                // to the marking field.
                                 espdu.getEntityType().setEntityKind((short) 1);  // Entity
                                 espdu.getEntityType().setDomain((short)3);       // surface
                                 espdu.getEntityType().setCountry(225);           // US; not strictly true
@@ -146,6 +155,22 @@ public class AisGateway {
                         // Static position report, sometimes used for navigation aides
                         case 5:
                             //System.out.println("Static position report");
+                            // Get the ship name here and insert that into
+                            // the marking field of the PDU. The static reports
+                            // come in much less frequently than position reports,
+                            // so it's possible we have no entry for the static 
+                            // report. Also, this means we may have no ship name
+                            // in the database fora  while.
+                            
+                            AisStaticCommon staticMessage = (AisStaticCommon)aisMessage;
+                            int mmsi = aisMessage.getUserId();
+                            //System.out.println("vessel name: " + staticMessage.getName());
+                            ShipInfo info = database.get(mmsi);
+                            if(info != null)
+                            {
+                                info.espdu.getMarking().setCharacters(staticMessage.getName());
+                            }
+                               
                             break;
 
                         default:

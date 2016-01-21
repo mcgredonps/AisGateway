@@ -14,8 +14,8 @@ import java.util.concurrent.*;
 public class AisTimeout implements Runnable
 {
     /** Timeout, 1000 ms times 60 sec/min times min */
-    //public static final int AIS_MESSAGE_TIMEOUT = 1000 * 60 * 15;
-    public static final int AIS_MESSAGE_TIMEOUT = 500;
+    public static final int AIS_MESSAGE_TIMEOUT = 1000 * 60 * 15;
+    //public static final int AIS_MESSAGE_TIMEOUT = 500;
 
     private ConcurrentHashMap<Integer, ShipInfo> database = null;
     
@@ -41,13 +41,13 @@ public class AisTimeout implements Runnable
                 // Iterator lets us retrieve the MMSIs, one by one
                 Iterator it = keys.iterator();
                 
+                Date now = new Date();
                 while(it.hasNext())
                 {
                     Integer id = (Integer)it.next();
                     ShipInfo shipInfo = database.get(id);
-                    Date now = new Date();
                     
-                    if(shipInfo.lastAISUpdate.getTime() + AIS_MESSAGE_TIMEOUT > now.getTime())
+                    if(shipInfo.lastAISUpdate.getTime() + AIS_MESSAGE_TIMEOUT < now.getTime())
                     {
                         database.remove(id);
                         System.out.println("Removed ship from database: " + id);

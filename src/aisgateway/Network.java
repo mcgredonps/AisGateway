@@ -7,7 +7,8 @@ import edu.nps.moves.dis.*;
 import edu.nps.moves.disutil.*;
 
 /**
- *
+ * A singleton. To use, call Network.getInstance().
+ * 
  * @author DMcG
  */
 public class Network 
@@ -35,6 +36,10 @@ public class Network
     }
     
     
+    /**
+     * Private constructor.
+     * @param port 
+     */
     private Network(int port)
     {
         try
@@ -49,6 +54,11 @@ public class Network
         
     }
     
+    /**
+     * Send a PDU to the network.
+     * 
+     * @param aPdu 
+     */
     public synchronized void sendPdu(Pdu aPdu)
     {
         try
